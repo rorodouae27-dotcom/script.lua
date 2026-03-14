@@ -2123,51 +2123,227 @@ end)
 
 
 -- =====================================================
--- AUTO RIGHT / AUTO LEFT GUIs
+-- AUTO RIGHT / AUTO LEFT GUIs (style screenshot)
 -- =====================================================
 
-local function createAutoRightGui()
-    if autoRightGui then return end
-    autoRightGui = Instance.new("ScreenGui")
-    autoRightGui.Name = "AutoRightGui"
-    autoRightGui.ResetOnSpawn = false
-    autoRightGui.Parent = game:GetService("CoreGui")
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,140,0,50)
-    btn.Position = UDim2.new(0.5,80,0.75,0)
-    btn.Text = "AutoRight"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-    btn.Active = true
-    btn.Draggable = true
-    btn.Parent = autoRightGui
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
-    autoRightBtn = btn
-    btn.MouseButton1Click:Connect(function()
-        if patrolMode == "right" then
-            autoLoopRight = false
+local function makePatrolGui(mode)
+    local guiName  = mode == "right" and "AutoRightGui" or "AutoLeftGui"
+    local title    = mode == "right" and "▶ Auto Right" or "◀ Auto Left"
+    local waypts   = mode == "right" and rightWaypoints or leftWaypoints
+    local posX     = mode == "right" and UDim2.new(0.5, 10, 0.3, 0) or UDim2.new(0.5, -230, 0.3, 0)
+    local saveKey  = mode == "right" and "rightWaypoints" or "leftWaypoints"
+
+    local sg = Instance.new("ScreenGui")
+    sg.Name = guiName
+    sg.ResetOnSpawn = false
+    sg.Parent = game:GetService("CoreGui")
+
+    local NB = #waypts
+    local ROW_H = 32
+    local frameH = 28 + 44 + NB * ROW_H + 38
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 220, 0, frameH)
+    frame.Position = posX
+    frame.BackgroundColor3 = Color3.fromRGB(10, 12, 20)
+    frame.BackgroundTransparency = 0
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = sg
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    local fStroke = Instance.new("UIStroke", frame)
+    fStroke.Color = Color3.fromRGB(0, 120, 255)
+    fStroke.Thickness = 2
+
+    -- Titre
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 26)
+    titleBar.BackgroundColor3 = Color3.fromRGB(0, 80, 180)
+    titleBar.BackgroundTransparency = 0.5
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = frame
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size = UDim2.new(1, -10, 1, 0)
+    titleLbl.Position = UDim2.new(0, 10, 0, 0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = title
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextSize = 13
+    titleLbl.TextColor3 = Color3.fromRGB(100, 180, 255)
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Parent = titleBar
+
+    -- Bouton PLAY
+    local playBtn = Instance.new("TextButton")
+    playBtn.Size = UDim2.new(1, -16, 0, 34)
+    playBtn.Position = UDim2.new(0, 8, 0, 30)
+    playBtn.Text = "PLAY"
+    playBtn.Font = Enum.Font.GothamBold
+    playBtn.TextSize = 16
+    playBtn.TextColor3 = Color3.new(1,1,1)
+    playBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    playBtn.Parent = frame
+    Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 8)
+
+    if mode == "right" then autoRightBtn = playBtn
+    else autoLeftBtn = playBtn end
+
+    -- Lignes waypoints
+    local xBoxes = {}
+    local zBoxes = {}
+
+    for i = 1, NB do
+        local y = 70 + (i-1) * ROW_H
+
+        -- Label
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(0, 48, 0, 26)
+        lbl.Position = UDim2.new(0, 4, 0, y)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = "Point "..i..":"
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextSize = 11
+        lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = frame
+
+        -- X box
+        local xBox = Instance.new("TextBox")
+        xBox.Size = UDim2.new(0, 60, 0, 24)
+        xBox.Position = UDim2.new(0, 54, 0, y+1)
+        xBox.BackgroundColor3 = Color3.fromRGB(15, 18, 32)
+        xBox.TextColor3 = Color3.fromRGB(255, 80, 80)
+        xBox.Font = Enum.Font.GothamBold
+        xBox.TextSize = 11
+        xBox.Text = tostring(math.floor(waypts[i].X * 10) / 10)
+        xBox.ClearTextOnFocus = false
+        xBox.Parent = frame
+        Instance.new("UICorner", xBox).CornerRadius = UDim.new(0, 5)
+        Instance.new("UIStroke", xBox).Color = Color3.fromRGB(40, 50, 90)
+
+        -- Z box
+        local zBox = Instance.new("TextBox")
+        zBox.Size = UDim2.new(0, 60, 0, 24)
+        zBox.Position = UDim2.new(0, 120, 0, y+1)
+        zBox.BackgroundColor3 = Color3.fromRGB(15, 18, 32)
+        zBox.TextColor3 = Color3.fromRGB(100, 220, 120)
+        zBox.Font = Enum.Font.GothamBold
+        zBox.TextSize = 11
+        zBox.Text = tostring(math.floor(waypts[i].Z * 10) / 10)
+        zBox.ClearTextOnFocus = false
+        zBox.Parent = frame
+        Instance.new("UICorner", zBox).CornerRadius = UDim.new(0, 5)
+        Instance.new("UIStroke", zBox).Color = Color3.fromRGB(40, 50, 90)
+
+        -- Bouton 📍 pour capturer position
+        local pinBtn = Instance.new("TextButton")
+        pinBtn.Size = UDim2.new(0, 26, 0, 24)
+        pinBtn.Position = UDim2.new(0, 186, 0, y+1)
+        pinBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 40)
+        pinBtn.Text = "📍"
+        pinBtn.TextSize = 13
+        pinBtn.Font = Enum.Font.Gotham
+        pinBtn.Parent = frame
+        Instance.new("UICorner", pinBtn).CornerRadius = UDim.new(0, 5)
+
+        local idx = i
+        pinBtn.MouseButton1Click:Connect(function()
+            local char = lp.Character
+            if not char then return end
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local pos = root.Position
+            xBox.Text = tostring(math.floor(pos.X * 10) / 10)
+            zBox.Text = tostring(math.floor(pos.Z * 10) / 10)
+            -- Flash vert
+            pinBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+            task.delay(0.5, function()
+                pinBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 40)
+            end)
+        end)
+
+        table.insert(xBoxes, xBox)
+        table.insert(zBoxes, zBox)
+    end
+
+    -- Delay
+    local delayY = 70 + NB * ROW_H + 4
+    local delayLbl = Instance.new("TextLabel")
+    delayLbl.Size = UDim2.new(0, 80, 0, 24)
+    delayLbl.Position = UDim2.new(0, 4, 0, delayY)
+    delayLbl.BackgroundTransparency = 1
+    delayLbl.Text = "Delay (s):"
+    delayLbl.Font = Enum.Font.Gotham
+    delayLbl.TextSize = 11
+    delayLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    delayLbl.TextXAlignment = Enum.TextXAlignment.Left
+    delayLbl.Parent = frame
+
+    local delayBox = Instance.new("TextBox")
+    delayBox.Size = UDim2.new(0, 60, 0, 24)
+    delayBox.Position = UDim2.new(0, 120, 0, delayY)
+    delayBox.BackgroundColor3 = Color3.fromRGB(15, 18, 32)
+    delayBox.TextColor3 = Color3.new(1,1,1)
+    delayBox.Font = Enum.Font.GothamBold
+    delayBox.TextSize = 11
+    delayBox.Text = "0.03"
+    delayBox.ClearTextOnFocus = false
+    delayBox.Parent = frame
+    Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
+    Instance.new("UIStroke", delayBox).Color = Color3.fromRGB(40, 50, 90)
+
+    -- Logique PLAY
+    playBtn.MouseButton1Click:Connect(function()
+        if patrolMode == mode then
+            if mode == "right" then autoLoopRight = false else autoLoopLeft = false end
             stopPatrol(true)
-            btn.Text = "AutoRight"
-            btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+            playBtn.Text = "PLAY"
+            playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         else
-            autoLoopRight = true
-            autoLoopLeft = false
-            startPatrol("right")
-            btn.Text = "STOP"
-            btn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+            -- Lire les waypoints depuis les boxes
+            local pts = {}
+            local saveWP = {}
+            for i = 1, NB do
+                local x = tonumber(xBoxes[i].Text) or waypts[i].X
+                local z = tonumber(zBoxes[i].Text) or waypts[i].Z
+                table.insert(pts, Vector3.new(x, waypts[i].Y, z))
+                table.insert(saveWP, {x, z})
+            end
+            if mode == "right" then
+                rightWaypoints = pts
+                autoLoopRight = true
+                autoLoopLeft = false
+            else
+                leftWaypoints = pts
+                autoLoopLeft = true
+                autoLoopRight = false
+            end
+            -- Sauvegarder
+            savedSettings[saveKey] = saveWP
+            saveSettings()
+            startPatrol(mode)
+            playBtn.Text = "STOP"
+            playBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
         end
     end)
+
     task.spawn(function()
-        while autoRightGui do
+        while sg and sg.Parent do
             task.wait(0.2)
-            if patrolMode ~= "right" and btn and btn.Parent then
-                btn.Text = "AutoRight"
-                btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+            if patrolMode ~= mode and playBtn and playBtn.Parent then
+                playBtn.Text = "PLAY"
+                playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             end
         end
     end)
+
+    return sg
+end
+
+local function createAutoRightGui()
+    if autoRightGui then return end
+    autoRightGui = makePatrolGui("right")
 end
 
 local function destroyAutoRightGui()
@@ -2178,46 +2354,7 @@ end
 
 local function createAutoLeftGui()
     if autoLeftGui then return end
-    autoLeftGui = Instance.new("ScreenGui")
-    autoLeftGui.Name = "AutoLeftGui"
-    autoLeftGui.ResetOnSpawn = false
-    autoLeftGui.Parent = game:GetService("CoreGui")
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,140,0,50)
-    btn.Position = UDim2.new(0.5,-220,0.75,0)
-    btn.Text = "AutoLeft"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-    btn.Active = true
-    btn.Draggable = true
-    btn.Parent = autoLeftGui
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
-    autoLeftBtn = btn
-    btn.MouseButton1Click:Connect(function()
-        if patrolMode == "left" then
-            autoLoopLeft = false
-            stopPatrol(true)
-            btn.Text = "AutoLeft"
-            btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        else
-            autoLoopLeft = true
-            autoLoopRight = false
-            startPatrol("left")
-            btn.Text = "STOP"
-            btn.BackgroundColor3 = Color3.fromRGB(200,0,0)
-        end
-    end)
-    task.spawn(function()
-        while autoLeftGui do
-            task.wait(0.2)
-            if patrolMode ~= "left" and btn and btn.Parent then
-                btn.Text = "AutoLeft"
-                btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-            end
-        end
-    end)
+    autoLeftGui = makePatrolGui("left")
 end
 
 local function destroyAutoLeftGui()
