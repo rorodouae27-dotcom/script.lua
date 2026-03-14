@@ -2126,12 +2126,14 @@ end)
 -- =====================================================
 
 local SAVE_FILE = "orrxl4_settings.json"
-local savedSettings = {}
+local savedSettings = {}  -- { [toggleName] = {enabled=bool, key="KeyName"} }
 
 local function saveSettings()
     pcall(function()
         local data = {}
-        for k,v in pairs(savedSettings) do data[k] = v end
+        for k,v in pairs(savedSettings) do
+            data[k] = v
+        end
         writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode(data))
     end)
 end
@@ -2143,7 +2145,9 @@ local function loadSettings()
             local ok, decoded = pcall(function()
                 return game:GetService("HttpService"):JSONDecode(raw)
             end)
-            if ok and decoded then savedSettings = decoded end
+            if ok and decoded then
+                savedSettings = decoded
+            end
         end
     end)
 end
@@ -2334,18 +2338,18 @@ local function createAutoPlayGui()
             playBtn.Text = "PLAY"
             playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             titleLbl.Text = "▶  Auto Play"
-            titleLbl.TextColor3 = Color3.fromRGB(100,180,255)
         else
             local side = detectSide()
-            local srcY = side == "right" and rightY5 or leftY5
-            local defWP = side == "right" and rightWP5 or leftWP5
+            -- Lire les waypoints depuis les boxes
+            local src = side == "right" and rightY5 or leftY5
+            local wp5 = side == "right" and rightWP5 or leftWP5
+            local boxes = side == "right" and rBoxes or lBoxes
             local pts = {}
             local saveWP = {}
             for i = 1, NB do
-                -- rBoxes contient toujours les TextBoxes
-                local x = tonumber(rBoxes[i][1].Text) or defWP[i][1]
-                local z = tonumber(rBoxes[i][2].Text) or defWP[i][2]
-                table.insert(pts, Vector3.new(x, srcY[i], z))
+                local x = tonumber(boxes[i][1].Text) or wp5[i][1]
+                local z = tonumber(boxes[i][2].Text) or wp5[i][2]
+                table.insert(pts, Vector3.new(x, src[i], z))
                 table.insert(saveWP, {x, z})
             end
             if side == "right" then
