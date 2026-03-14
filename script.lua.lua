@@ -1,3 +1,4 @@
+
 --// leaked by discord.gg/cxyrohub
 local Lighting = game:GetService("Lighting")
 local optimizerEnabled = false
@@ -3362,3 +3363,4 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleHub()
     end
 end)
+
