@@ -2122,6 +2122,35 @@ lp.CharacterAdded:Connect(function()
 end)
 
 -- =====================================================
+-- SYSTEME SAUVEGARDE AUTOMATIQUE (writefile/readfile)
+-- =====================================================
+
+local SAVE_FILE = "orrxl4_settings.json"
+local savedSettings = {}
+
+local function saveSettings()
+    pcall(function()
+        local data = {}
+        for k,v in pairs(savedSettings) do data[k] = v end
+        writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode(data))
+    end)
+end
+
+local function loadSettings()
+    pcall(function()
+        if isfile(SAVE_FILE) then
+            local raw = readfile(SAVE_FILE)
+            local ok, decoded = pcall(function()
+                return game:GetService("HttpService"):JSONDecode(raw)
+            end)
+            if ok and decoded then savedSettings = decoded end
+        end
+    end)
+end
+
+loadSettings()
+
+-- =====================================================
 -- AUTO PLAY UI - STYLE SCREENSHOT EXACT
 -- =====================================================
 
@@ -2653,39 +2682,6 @@ for i,v in ipairs(sections) do
     table.insert(sectionButtons, btn)
     btn.MouseButton1Click:Connect(function() ShowSection(v) end)
 end
-
--- =====================================================
--- SYSTEME SAUVEGARDE AUTOMATIQUE (writefile/readfile)
--- =====================================================
-
-local SAVE_FILE = "orrxl4_settings.json"
-local savedSettings = {}  -- { [toggleName] = {enabled=bool, key="KeyName"} }
-
-local function saveSettings()
-    pcall(function()
-        local data = {}
-        for k,v in pairs(savedSettings) do
-            data[k] = v
-        end
-        writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode(data))
-    end)
-end
-
-local function loadSettings()
-    pcall(function()
-        if isfile(SAVE_FILE) then
-            local raw = readfile(SAVE_FILE)
-            local ok, decoded = pcall(function()
-                return game:GetService("HttpService"):JSONDecode(raw)
-            end)
-            if ok and decoded then
-                savedSettings = decoded
-            end
-        end
-    end)
-end
-
-loadSettings()
 
 -- Restaurer les valeurs numériques sauvegardées
 if savedSettings["grabRadius"]    then grabRadius    = savedSettings["grabRadius"]    end
