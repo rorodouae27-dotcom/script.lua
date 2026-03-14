@@ -2856,48 +2856,25 @@ elseif text == "Auto Walk" then
                                 local prompt = findNearestSteal(root)
                                 if prompt then
                                     progressBarBg.Visible = true
-                                    local holdDur = prompt.HoldDuration
-                                    local STEAL_DURATION = math.max(holdDur / 15, 0.1)
-                                    local startTime = tick()
-
-                                    -- Déclencher le prompt avec toutes les méthodes disponibles
-                                    local function triggerPrompt()
-                                        pcall(fireproximityprompt, prompt)
-                                        pcall(function()
-                                            local ProximityPromptService = game:GetService("ProximityPromptService")
-                                            ProximityPromptService:FirePromptButtonHoldBegin(prompt)
-                                        end)
-                                        pcall(function()
-                                            prompt:InputHoldBegin()
-                                        end)
-                                    end
-
-                                    triggerPrompt()
-
+                                    local start = tick()
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
-                                        local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
+                                        local p = math.clamp((tick() - start) / 1.2, 0, 1)
                                         progressFill.Size = UDim2.new(p, 0, 1, 0)
-                                        percentLabel.Text = math.floor(p * 100) .. "%"
-                                        -- Retrigger toutes les 0.05s pour être sûr
-                                        triggerPrompt()
-                                        if p >= 1 then
-                                            startTime = tick()
+                                        percentLabel.Text = math.floor(p*100).."%"
+                                        if p >= 0.99 then
+                                            pcall(fireproximityprompt, prompt)
+                                            task.wait(0.1)
+                                            pcall(fireproximityprompt, prompt)
+                                            start = tick()
                                         end
-                                        task.wait(0.05)
+                                        task.wait()
                                     end
-
-                                    -- Fin du hold
-                                    pcall(function()
-                                        local ProximityPromptService = game:GetService("ProximityPromptService")
-                                        ProximityPromptService:FirePromptButtonHoldEnd(prompt)
-                                    end)
-                                    pcall(function() prompt:InputHoldEnd() end)
                                     resetBar()
                                 end
                             end
                         end
                         resetBar()
-                        task.wait(0.05)
+                        task.wait(0.15)
                     end
                     resetBar(true)
                     hideSquare()
