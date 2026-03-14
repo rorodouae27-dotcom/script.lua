@@ -2859,18 +2859,39 @@ elseif text == "Auto Walk" then
                                     local holdDur = prompt.HoldDuration
                                     local STEAL_DURATION = math.max(holdDur / 15, 0.1)
                                     local startTime = tick()
-                                    -- Spam fireproximityprompt EN CONTINU pendant toute la durée
+
+                                    -- Déclencher le prompt avec toutes les méthodes disponibles
+                                    local function triggerPrompt()
+                                        pcall(fireproximityprompt, prompt)
+                                        pcall(function()
+                                            local ProximityPromptService = game:GetService("ProximityPromptService")
+                                            ProximityPromptService:FirePromptButtonHoldBegin(prompt)
+                                        end)
+                                        pcall(function()
+                                            prompt:InputHoldBegin()
+                                        end)
+                                    end
+
+                                    triggerPrompt()
+
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
                                         local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
                                         progressFill.Size = UDim2.new(p, 0, 1, 0)
                                         percentLabel.Text = math.floor(p * 100) .. "%"
-                                        -- Spam continu dès le début
-                                        pcall(fireproximityprompt, prompt)
+                                        -- Retrigger toutes les 0.05s pour être sûr
+                                        triggerPrompt()
                                         if p >= 1 then
                                             startTime = tick()
                                         end
-                                        task.wait(0.03)
+                                        task.wait(0.05)
                                     end
+
+                                    -- Fin du hold
+                                    pcall(function()
+                                        local ProximityPromptService = game:GetService("ProximityPromptService")
+                                        ProximityPromptService:FirePromptButtonHoldEnd(prompt)
+                                    end)
+                                    pcall(function() prompt:InputHoldEnd() end)
                                     resetBar()
                                 end
                             end
