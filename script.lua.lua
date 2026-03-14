@@ -2119,7 +2119,7 @@ local function createAutoPlayGui()
 
     -- Panel principal
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 130)
+    frame.Size = UDim2.new(0, 300, 0, 155)
     frame.Position = UDim2.new(0.5, -150, 0.75, 0)
     frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     frame.BackgroundTransparency = 0.2
@@ -2166,10 +2166,44 @@ local function createAutoPlayGui()
     btnLeft.Parent = frame
     Instance.new("UICorner", btnLeft).CornerRadius = UDim.new(0, 10)
 
+    -- Keybind RIGHT
+    local boundRight = nil
+    local listeningRight = false
+    local justBoundRight = false
+
+    local keyBtnRight = Instance.new("TextButton")
+    keyBtnRight.Size = UDim2.new(0, 130, 0, 18)
+    keyBtnRight.Position = UDim2.new(0, 10, 0, 90)
+    keyBtnRight.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    keyBtnRight.TextColor3 = Color3.fromRGB(160, 160, 160)
+    keyBtnRight.Font = Enum.Font.Gotham
+    keyBtnRight.TextSize = 11
+    keyBtnRight.Text = "[+ Key Right]"
+    keyBtnRight.Parent = frame
+    Instance.new("UICorner", keyBtnRight).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", keyBtnRight).Color = Color3.fromRGB(60, 60, 60)
+
+    -- Keybind LEFT
+    local boundLeft = nil
+    local listeningLeft = false
+    local justBoundLeft = false
+
+    local keyBtnLeft = Instance.new("TextButton")
+    keyBtnLeft.Size = UDim2.new(0, 130, 0, 18)
+    keyBtnLeft.Position = UDim2.new(0, 155, 0, 90)
+    keyBtnLeft.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    keyBtnLeft.TextColor3 = Color3.fromRGB(160, 160, 160)
+    keyBtnLeft.Font = Enum.Font.Gotham
+    keyBtnLeft.TextSize = 11
+    keyBtnLeft.Text = "[+ Key Left]"
+    keyBtnLeft.Parent = frame
+    Instance.new("UICorner", keyBtnLeft).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", keyBtnLeft).Color = Color3.fromRGB(60, 60, 60)
+
     -- Status label
     local status = Instance.new("TextLabel")
     status.Size = UDim2.new(1, 0, 0, 20)
-    status.Position = UDim2.new(0, 0, 1, -22)
+    status.Position = UDim2.new(0, 0, 1, -24)
     status.BackgroundTransparency = 1
     status.Text = "En attente..."
     status.Font = Enum.Font.Gotham
@@ -2180,9 +2214,110 @@ local function createAutoPlayGui()
     autoRightBtn = btnRight
     autoLeftBtn = btnLeft
 
-    -- Connecter les boutons
-    btnRight.MouseButton1Click:Connect(function()
-        doAutoRight()
+    -- Restaurer keybinds sauvegardés
+    if savedSettings["autoPlayKeyRight"] then
+        local ok, kc = pcall(function() return Enum.KeyCode[savedSettings["autoPlayKeyRight"]] end)
+        if ok and kc then
+            boundRight = kc
+            keyBtnRight.Text = "[" .. savedSettings["autoPlayKeyRight"] .. "]"
+            keyBtnRight.TextColor3 = Color3.fromRGB(0, 200, 100)
+        end
+    end
+    if savedSettings["autoPlayKeyLeft"] then
+        local ok, kc = pcall(function() return Enum.KeyCode[savedSettings["autoPlayKeyLeft"]] end)
+        if ok and kc then
+            boundLeft = kc
+            keyBtnLeft.Text = "[" .. savedSettings["autoPlayKeyLeft"] .. "]"
+            keyBtnLeft.TextColor3 = Color3.fromRGB(0, 200, 100)
+        end
+    end
+
+    -- Assigner touche RIGHT
+    keyBtnRight.MouseButton1Click:Connect(function()
+        if listeningRight then return end
+        listeningRight = true
+        keyBtnRight.Text = "..."
+        keyBtnRight.TextColor3 = Color3.fromRGB(255, 200, 0)
+        local conn
+        conn = UserInputService.InputBegan:Connect(function(input, _gp)
+            if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+            local keyName = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
+            if keyName == "Escape" then
+                boundRight = nil
+                keyBtnRight.Text = "[+ Key Right]"
+                keyBtnRight.TextColor3 = Color3.fromRGB(160, 160, 160)
+                savedSettings["autoPlayKeyRight"] = nil
+            else
+                boundRight = input.KeyCode
+                keyBtnRight.Text = "[" .. keyName .. "]"
+                keyBtnRight.TextColor3 = Color3.fromRGB(0, 200, 100)
+                justBoundRight = true
+                task.delay(0.4, function() justBoundRight = false end)
+                savedSettings["autoPlayKeyRight"] = keyName
+            end
+            saveSettings()
+            listeningRight = false
+            conn:Disconnect()
+        end)
+    end)
+
+    keyBtnRight.MouseButton2Click:Connect(function()
+        boundRight = nil
+        keyBtnRight.Text = "[+ Key Right]"
+        keyBtnRight.TextColor3 = Color3.fromRGB(160, 160, 160)
+        savedSettings["autoPlayKeyRight"] = nil
+        saveSettings()
+    end)
+
+    -- Assigner touche LEFT
+    keyBtnLeft.MouseButton1Click:Connect(function()
+        if listeningLeft then return end
+        listeningLeft = true
+        keyBtnLeft.Text = "..."
+        keyBtnLeft.TextColor3 = Color3.fromRGB(255, 200, 0)
+        local conn
+        conn = UserInputService.InputBegan:Connect(function(input, _gp)
+            if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+            local keyName = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
+            if keyName == "Escape" then
+                boundLeft = nil
+                keyBtnLeft.Text = "[+ Key Left]"
+                keyBtnLeft.TextColor3 = Color3.fromRGB(160, 160, 160)
+                savedSettings["autoPlayKeyLeft"] = nil
+            else
+                boundLeft = input.KeyCode
+                keyBtnLeft.Text = "[" .. keyName .. "]"
+                keyBtnLeft.TextColor3 = Color3.fromRGB(0, 200, 100)
+                justBoundLeft = true
+                task.delay(0.4, function() justBoundLeft = false end)
+                savedSettings["autoPlayKeyLeft"] = keyName
+            end
+            saveSettings()
+            listeningLeft = false
+            conn:Disconnect()
+        end)
+    end)
+
+    keyBtnLeft.MouseButton2Click:Connect(function()
+        boundLeft = nil
+        keyBtnLeft.Text = "[+ Key Left]"
+        keyBtnLeft.TextColor3 = Color3.fromRGB(160, 160, 160)
+        savedSettings["autoPlayKeyLeft"] = nil
+        saveSettings()
+    end)
+
+    -- Listener keybinds globaux
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if not listeningRight and not justBoundRight and boundRight and input.KeyCode == boundRight then
+            btnRight.MouseButton1Click:Fire()
+        end
+        if not listeningLeft and not justBoundLeft and boundLeft and input.KeyCode == boundLeft then
+            btnLeft.MouseButton1Click:Fire()
+        end
+    end)
+
+    local function updateBtns()
         if patrolMode == "right" then
             btnRight.Text = "⏹ STOP Right"
             btnRight.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
@@ -2190,17 +2325,7 @@ local function createAutoPlayGui()
             btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
             status.Text = "🟢 Route droite en cours..."
             status.TextColor3 = Color3.fromRGB(0, 200, 100)
-        else
-            btnRight.Text = "▶ AutoRight"
-            btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-            status.Text = "En attente..."
-            status.TextColor3 = Color3.fromRGB(160, 160, 160)
-        end
-    end)
-
-    btnLeft.MouseButton1Click:Connect(function()
-        doAutoLeft()
-        if patrolMode == "left" then
+        elseif patrolMode == "left" then
             btnLeft.Text = "⏹ STOP Left"
             btnLeft.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
             btnRight.Text = "▶ AutoRight"
@@ -2208,11 +2333,23 @@ local function createAutoPlayGui()
             status.Text = "🟢 Route gauche en cours..."
             status.TextColor3 = Color3.fromRGB(0, 200, 100)
         else
+            btnRight.Text = "▶ AutoRight"
+            btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
             btnLeft.Text = "◀ AutoLeft"
             btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
             status.Text = "En attente..."
             status.TextColor3 = Color3.fromRGB(160, 160, 160)
         end
+    end
+
+    btnRight.MouseButton1Click:Connect(function()
+        doAutoRight()
+        updateBtns()
+    end)
+
+    btnLeft.MouseButton1Click:Connect(function()
+        doAutoLeft()
+        updateBtns()
     end)
 
     -- Reset boutons quand patrol termine
@@ -2220,18 +2357,7 @@ local function createAutoPlayGui()
         while autoPlayGui do
             task.wait(0.2)
             if patrolMode == "none" then
-                if btnRight and btnRight.Parent then
-                    btnRight.Text = "▶ AutoRight"
-                    btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-                end
-                if btnLeft and btnLeft.Parent then
-                    btnLeft.Text = "◀ AutoLeft"
-                    btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-                end
-                if status and status.Parent then
-                    status.Text = "En attente..."
-                    status.TextColor3 = Color3.fromRGB(160, 160, 160)
-                end
+                updateBtns()
             end
         end
     end)
@@ -2247,7 +2373,7 @@ local function destroyAutoPlayGui()
     end
 end
 
-local function createAutoRightGui() end -- garde pour compatibilité
+local function createAutoRightGui() end
 local function createAutoLeftGui() end
 local function destroyAutoRightGui() destroyAutoPlayGui() end
 local function destroyAutoLeftGui() destroyAutoPlayGui() end
