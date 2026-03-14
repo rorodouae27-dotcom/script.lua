@@ -1907,13 +1907,13 @@ end
 
 local rightWaypoints = {
     Vector3.new(-473.04, -6.99, 29.71),
-    Vector3.new(-489.38, -4.85, 22.68),
+    Vector3.new(-483.57, -5.10, 18.74),
     Vector3.new(-475.00, -6.99, 26.43),
     Vector3.new(-474.67, -6.94, 105.48),
 }
 local leftWaypoints = {
     Vector3.new(-472.49, -7.00, 90.62),
-    Vector3.new(-488.93, -5.05, 99.14),
+    Vector3.new(-486.65, -4.54, 95.22),
     Vector3.new(-475.08, -7.00, 93.29),
     Vector3.new(-472.48, -7.00, 20.01),
 }
@@ -1924,6 +1924,8 @@ local patrolConn         = nil
 local waitingCountdownR  = false
 local waitingCountdownL  = false
 local AUTO_START_DELAY   = 0.7
+local autoLoopRight      = false  -- boucle auto Right activée
+local autoLoopLeft       = false  -- boucle auto Left activée
 
 local autoRightGui = nil
 local autoLeftGui  = nil
@@ -1940,7 +1942,8 @@ local function getPatrolWaypoints()
     return {}
 end
 
-local function stopPatrol()
+local function stopPatrol(noLoop)
+    local wasMode = patrolMode
     patrolMode = "none"
     patrolWaypoint = 1
     waitingCountdownR = false
@@ -1961,6 +1964,18 @@ local function stopPatrol()
     if autoLeftBtn and autoLeftBtn.Parent then
         autoLeftBtn.Text = "AutoLeft"
         TweenService:Create(autoLeftBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0,120,255)}):Play()
+    end
+    -- Relancer automatiquement si boucle active
+    if not noLoop then
+        if wasMode == "right" and autoLoopRight then
+            task.delay(0.5, function()
+                if autoLoopRight then startPatrol("right") end
+            end)
+        elseif wasMode == "left" and autoLoopLeft then
+            task.delay(0.5, function()
+                if autoLoopLeft then startPatrol("left") end
+            end)
+        end
     end
 end
 
@@ -2155,7 +2170,8 @@ local function createAutoRightGui()
 end
 
 local function destroyAutoRightGui()
-    stopPatrol()
+    autoLoopRight = false
+    stopPatrol(true)
     if autoRightGui then
         autoRightGui:Destroy()
         autoRightGui = nil
@@ -2212,7 +2228,8 @@ local function createAutoLeftGui()
 end
 
 local function destroyAutoLeftGui()
-    stopPatrol()
+    autoLoopLeft = false
+    stopPatrol(true)
     if autoLeftGui then
         autoLeftGui:Destroy()
         autoLeftGui = nil
@@ -2854,17 +2871,23 @@ elseif text == "Melee Aimbot" then
 
 elseif text == "Auto Right" then
     if enabled then
+        autoLoopRight = true
         createAutoRightGui()
-        doAutoRight()
+        startPatrol("right")
     else
+        autoLoopRight = false
+        stopPatrol(true)
         destroyAutoRightGui()
     end
 
 elseif text == "Auto Left" then
     if enabled then
+        autoLoopLeft = true
         createAutoLeftGui()
-        doAutoLeft()
+        startPatrol("left")
     else
+        autoLoopLeft = false
+        stopPatrol(true)
         destroyAutoLeftGui()
     end
 
