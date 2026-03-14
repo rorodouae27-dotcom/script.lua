@@ -1,4 +1,3 @@
-
 --// leaked by discord.gg/cxyrohub
 local Lighting = game:GetService("Lighting")
 local optimizerEnabled = false
@@ -2306,18 +2305,18 @@ local function createAutoPlayGui()
             playBtn.Text = "PLAY"
             playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             titleLbl.Text = "▶  Auto Play"
+            titleLbl.TextColor3 = Color3.fromRGB(100,180,255)
         else
             local side = detectSide()
-            -- Lire les waypoints depuis les boxes
-            local src = side == "right" and rightY5 or leftY5
-            local wp5 = side == "right" and rightWP5 or leftWP5
-            local boxes = side == "right" and rBoxes or lBoxes
+            local srcY = side == "right" and rightY5 or leftY5
+            local defWP = side == "right" and rightWP5 or leftWP5
             local pts = {}
             local saveWP = {}
             for i = 1, NB do
-                local x = tonumber(boxes[i][1].Text) or wp5[i][1]
-                local z = tonumber(boxes[i][2].Text) or wp5[i][2]
-                table.insert(pts, Vector3.new(x, src[i], z))
+                -- rBoxes contient toujours les TextBoxes
+                local x = tonumber(rBoxes[i][1].Text) or defWP[i][1]
+                local z = tonumber(rBoxes[i][2].Text) or defWP[i][2]
+                table.insert(pts, Vector3.new(x, srcY[i], z))
                 table.insert(saveWP, {x, z})
             end
             if side == "right" then
@@ -3362,4 +3361,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleHub()
     end
 end)
-
