@@ -1,4 +1,3 @@
-
 --// leaked by discord.gg/cxyrohub
 local Lighting = game:GetService("Lighting")
 local optimizerEnabled = false
@@ -1596,10 +1595,13 @@ RunService.Heartbeat:Connect(function()
     if raycastResult then
         local groundY = raycastResult.Position.Y
         local targetY = groundY + 8
-        local yDiff = targetY - root.Position.Y
+        local currentY = root.Position.Y
+        local yDiff = targetY - currentY
         local vel = root.AssemblyLinearVelocity
         if math.abs(yDiff) > 0.3 then
-            root.AssemblyLinearVelocity = Vector3.new(vel.X, yDiff * 15, vel.Z)
+            -- Clamp la vitesse verticale pour ne pas dépasser 8 de hauteur
+            local yVel = math.clamp(yDiff * 5, -20, 20)
+            root.AssemblyLinearVelocity = Vector3.new(vel.X, yVel, vel.Z)
         else
             root.AssemblyLinearVelocity = Vector3.new(vel.X, 0, vel.Z)
         end
@@ -3163,4 +3165,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleHub()
     end
 end)
-
