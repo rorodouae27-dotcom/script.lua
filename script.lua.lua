@@ -1914,9 +1914,9 @@ local rightWaypoints = {
 }
 local leftWaypoints = {
     Vector3.new(-472.49, -7.00, 90.62),
-    Vector3.new(-485.95, -4.64, 96.34),
+    Vector3.new(-484.62, -5.10, 100.37),
     Vector3.new(-475.08, -7.00, 93.29),
-    Vector3.new(-477.86, -5.73, 26.15),
+    Vector3.new(-474.22, -6.96, 16.18),
 }
 
 local patrolMode         = "none"
@@ -2860,7 +2860,7 @@ elseif text == "Auto Walk" then
                                     -- Lire le vrai HoldDuration du prompt (ex: 8s)
                                     -- On le divise par 10 pour aller 10x plus vite
                                     local holdDur = prompt.HoldDuration
-                                    local STEAL_DURATION = math.max(holdDur / 999, 0.1)
+                                    local STEAL_DURATION = math.max(holdDur / 40, 0.1)
                                     local startTime = tick()
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
                                         local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
