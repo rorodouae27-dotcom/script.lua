@@ -1909,7 +1909,7 @@ local rightWaypoints = {
     Vector3.new(-473.04, -6.99, 29.71),
     Vector3.new(-491.68, -5.05, 24.30),
     Vector3.new(-475.00, -6.99, 26.43),
-    Vector3.new(-474.67, -6.94, 105.48),
+    Vector3.new(-486.90, -4.60, 24.36),
 }
 local leftWaypoints = {
     Vector3.new(-472.49, -7.00, 90.62),
