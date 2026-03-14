@@ -1914,9 +1914,9 @@ local rightWaypoints = {
 }
 local leftWaypoints = {
     Vector3.new(-472.49, -7.00, 90.62),
-    Vector3.new(-486.07, -4.64, 95.93),
+    Vector3.new(-486.65, -4.54, 95.22),
     Vector3.new(-475.08, -7.00, 93.29),
-    Vector3.new(-477.86, -5.73, 26.15),
+    Vector3.new(-472.48, -7.00, 20.01),
 }
 
 local patrolMode         = "none"
