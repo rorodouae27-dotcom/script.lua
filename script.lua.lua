@@ -2136,10 +2136,8 @@ local function detectSide()
     if not char then return "right" end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return "right" end
-    local pos = root.Position
-    local dRight = (Vector3.new(rightWaypoints[1].X, pos.Y, rightWaypoints[1].Z) - pos).Magnitude
-    local dLeft  = (Vector3.new(leftWaypoints[1].X,  pos.Y, leftWaypoints[1].Z)  - pos).Magnitude
-    return dRight <= dLeft and "right" or "left"
+    -- Z < 55 = spawn côté Right (Z~29), Z > 55 = côté Left (Z~90)
+    return root.Position.Z < 55 and "right" or "left"
 end
 
 -- 5 points par côté (on ajoute un 5e point = même que le 4e par défaut)
