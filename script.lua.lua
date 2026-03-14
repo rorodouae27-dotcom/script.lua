@@ -2169,46 +2169,25 @@ local function createAutoRightGui()
     autoRightGui.ResetOnSpawn = false
     autoRightGui.Parent = game:GetService("CoreGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 160, 0, 75)
-    frame.Position = UDim2.new(0.5, 10, 0.35, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(10, 15, 30)
-    frame.BackgroundTransparency = 0
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = autoRightGui
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-    local stroke = Instance.new("UIStroke", frame)
-    stroke.Color = Color3.fromRGB(0, 120, 255)
-    stroke.Thickness = 2
-
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, 0, 0, 22)
-    titleLbl.Position = UDim2.new(0, 0, 0, 4)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = "► Auto Right"
-    titleLbl.Font = Enum.Font.GothamBold
-    titleLbl.TextSize = 12
-    titleLbl.TextColor3 = Color3.fromRGB(100, 180, 255)
-    titleLbl.Parent = frame
-
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -16, 0, 36)
-    btn.Position = UDim2.new(0, 8, 0, 28)
-    btn.Text = "PLAY"
+    btn.Size = UDim2.new(0, 140, 0, 50)
+    btn.Position = UDim2.new(0.5, 80, 0.75, 0)
+    btn.Text = "AutoRight"
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 18
+    btn.TextSize = 16
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0.5, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+    btn.Active = true
+    btn.Draggable = true
+    btn.Parent = autoRightGui
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
     autoRightBtn = btn
 
     btn.MouseButton1Click:Connect(function()
         if patrolMode == "right" then
             autoLoopRight = false
             stopPatrol(true)
-            btn.Text = "PLAY"
+            btn.Text = "AutoRight"
             btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         else
             autoLoopRight = true
@@ -2223,7 +2202,7 @@ local function createAutoRightGui()
         while autoRightGui do
             task.wait(0.2)
             if patrolMode ~= "right" and btn and btn.Parent then
-                btn.Text = "PLAY"
+                btn.Text = "AutoRight"
                 btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             end
         end
@@ -2247,46 +2226,25 @@ local function createAutoLeftGui()
     autoLeftGui.ResetOnSpawn = false
     autoLeftGui.Parent = game:GetService("CoreGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 160, 0, 75)
-    frame.Position = UDim2.new(0.5, -170, 0.35, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(10, 15, 30)
-    frame.BackgroundTransparency = 0
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = autoLeftGui
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-    local stroke = Instance.new("UIStroke", frame)
-    stroke.Color = Color3.fromRGB(0, 120, 255)
-    stroke.Thickness = 2
-
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, 0, 0, 22)
-    titleLbl.Position = UDim2.new(0, 0, 0, 4)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = "◄ Auto Left"
-    titleLbl.Font = Enum.Font.GothamBold
-    titleLbl.TextSize = 12
-    titleLbl.TextColor3 = Color3.fromRGB(100, 180, 255)
-    titleLbl.Parent = frame
-
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -16, 0, 36)
-    btn.Position = UDim2.new(0, 8, 0, 28)
-    btn.Text = "PLAY"
+    btn.Size = UDim2.new(0, 140, 0, 50)
+    btn.Position = UDim2.new(0.5, -220, 0.75, 0)
+    btn.Text = "AutoLeft"
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 18
+    btn.TextSize = 16
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0.5, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+    btn.Active = true
+    btn.Draggable = true
+    btn.Parent = autoLeftGui
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
     autoLeftBtn = btn
 
     btn.MouseButton1Click:Connect(function()
         if patrolMode == "left" then
             autoLoopLeft = false
             stopPatrol(true)
-            btn.Text = "PLAY"
+            btn.Text = "AutoLeft"
             btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         else
             autoLoopLeft = true
@@ -2301,7 +2259,7 @@ local function createAutoLeftGui()
         while autoLeftGui do
             task.wait(0.2)
             if patrolMode ~= "left" and btn and btn.Parent then
-                btn.Text = "PLAY"
+                btn.Text = "AutoLeft"
                 btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             end
         end
