@@ -1,3 +1,4 @@
+
 --// leaked by discord.gg/cxyrohub
 
 -- =====================================================
@@ -3247,3 +3248,4 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleHub()
     end
 end)
+
