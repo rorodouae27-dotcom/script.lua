@@ -2226,8 +2226,6 @@ local function destroyAutoLeftGui()
     if autoLeftGui then autoLeftGui:Destroy() autoLeftGui = nil autoLeftBtn = nil end
 end
 
-
-
 local ContextActionService = game:GetService("ContextActionService")
 
 local walkRunning = false
@@ -2874,6 +2872,152 @@ elseif text == "Melee Aimbot" then
         disableMeleeAimbot()
     end
 
+elseif text == "Set Points" then
+    if enabled then
+        -- Créer l'UI Set Points
+        if not lp.PlayerGui:FindFirstChild("SetPointsGui") then
+            local spGui = Instance.new("ScreenGui")
+            spGui.Name = "SetPointsGui"
+            spGui.ResetOnSpawn = false
+            spGui.Parent = lp.PlayerGui
+
+            local NB = 4
+            local ROW_H = 32
+            local frameH = 28 + NB * 2 * ROW_H + 60 + 20
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(0, 230, 0, frameH)
+            frame.Position = UDim2.new(0.5, -115, 0.2, 0)
+            frame.BackgroundColor3 = Color3.fromRGB(10, 12, 20)
+            frame.BackgroundTransparency = 0
+            frame.Active = true
+            frame.Draggable = true
+            frame.Parent = spGui
+            Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+            local fStroke = Instance.new("UIStroke", frame)
+            fStroke.Color = Color3.fromRGB(0, 120, 255)
+            fStroke.Thickness = 2
+
+            -- Titre
+            local titleBar = Instance.new("Frame")
+            titleBar.Size = UDim2.new(1, 0, 0, 26)
+            titleBar.BackgroundColor3 = Color3.fromRGB(0, 80, 180)
+            titleBar.BackgroundTransparency = 0.4
+            titleBar.BorderSizePixel = 0
+            titleBar.Parent = frame
+            Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
+
+            local titleLbl = Instance.new("TextLabel")
+            titleLbl.Size = UDim2.new(1, -10, 1, 0)
+            titleLbl.Position = UDim2.new(0, 10, 0, 0)
+            titleLbl.BackgroundTransparency = 1
+            titleLbl.Text = "📍 Set Points"
+            titleLbl.Font = Enum.Font.GothamBold
+            titleLbl.TextSize = 13
+            titleLbl.TextColor3 = Color3.fromRGB(100, 180, 255)
+            titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+            titleLbl.Parent = titleBar
+
+            local function makeSection(label, color, waypts, saveKey, yStart)
+                -- Label section
+                local sectionLbl = Instance.new("TextLabel")
+                sectionLbl.Size = UDim2.new(1, 0, 0, 20)
+                sectionLbl.Position = UDim2.new(0, 0, 0, yStart)
+                sectionLbl.BackgroundTransparency = 1
+                sectionLbl.Text = label
+                sectionLbl.Font = Enum.Font.GothamBold
+                sectionLbl.TextSize = 12
+                sectionLbl.TextColor3 = color
+                sectionLbl.Parent = frame
+
+                for i = 1, NB do
+                    local y = yStart + 22 + (i-1) * ROW_H
+
+                    local lbl = Instance.new("TextLabel")
+                    lbl.Size = UDim2.new(0, 48, 0, 26)
+                    lbl.Position = UDim2.new(0, 4, 0, y)
+                    lbl.BackgroundTransparency = 1
+                    lbl.Text = "Point "..i..":"
+                    lbl.Font = Enum.Font.Gotham
+                    lbl.TextSize = 11
+                    lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+                    lbl.TextXAlignment = Enum.TextXAlignment.Left
+                    lbl.Parent = frame
+
+                    local xBox = Instance.new("TextBox")
+                    xBox.Size = UDim2.new(0, 58, 0, 24)
+                    xBox.Position = UDim2.new(0, 54, 0, y+1)
+                    xBox.BackgroundColor3 = Color3.fromRGB(15, 18, 32)
+                    xBox.TextColor3 = Color3.fromRGB(255, 100, 100)
+                    xBox.Font = Enum.Font.GothamBold
+                    xBox.TextSize = 11
+                    xBox.Text = tostring(math.floor(waypts[i].X * 10) / 10)
+                    xBox.ClearTextOnFocus = false
+                    xBox.Parent = frame
+                    Instance.new("UICorner", xBox).CornerRadius = UDim.new(0, 5)
+                    Instance.new("UIStroke", xBox).Color = Color3.fromRGB(40, 50, 90)
+
+                    local zBox = Instance.new("TextBox")
+                    zBox.Size = UDim2.new(0, 58, 0, 24)
+                    zBox.Position = UDim2.new(0, 118, 0, y+1)
+                    zBox.BackgroundColor3 = Color3.fromRGB(15, 18, 32)
+                    zBox.TextColor3 = Color3.fromRGB(100, 220, 120)
+                    zBox.Font = Enum.Font.GothamBold
+                    zBox.TextSize = 11
+                    zBox.Text = tostring(math.floor(waypts[i].Z * 10) / 10)
+                    zBox.ClearTextOnFocus = false
+                    zBox.Parent = frame
+                    Instance.new("UICorner", zBox).CornerRadius = UDim.new(0, 5)
+                    Instance.new("UIStroke", zBox).Color = Color3.fromRGB(40, 50, 90)
+
+                    -- Bouton 📍 capture position
+                    local pinBtn = Instance.new("TextButton")
+                    pinBtn.Size = UDim2.new(0, 28, 0, 24)
+                    pinBtn.Position = UDim2.new(0, 182, 0, y+1)
+                    pinBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 40)
+                    pinBtn.Text = "📍"
+                    pinBtn.TextSize = 13
+                    pinBtn.Font = Enum.Font.Gotham
+                    pinBtn.Parent = frame
+                    Instance.new("UICorner", pinBtn).CornerRadius = UDim.new(0, 5)
+
+                    local idx = i
+                    pinBtn.MouseButton1Click:Connect(function()
+                        local char = lp.Character
+                        if not char then return end
+                        local root = char:FindFirstChild("HumanoidRootPart")
+                        if not root then return end
+                        xBox.Text = tostring(math.floor(root.Position.X * 10) / 10)
+                        zBox.Text = tostring(math.floor(root.Position.Z * 10) / 10)
+                        pinBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+                        task.delay(0.5, function() pinBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 40) end)
+                    end)
+
+                    -- Sauvegarder quand on quitte le textbox
+                    local function saveBoxes()
+                        local x = tonumber(xBox.Text) or waypts[idx].X
+                        local z = tonumber(zBox.Text) or waypts[idx].Z
+                        waypts[idx] = Vector3.new(x, waypts[idx].Y, z)
+                        local saveWP = {}
+                        for j = 1, NB do saveWP[j] = {waypts[j].X, waypts[j].Z} end
+                        savedSettings[saveKey] = saveWP
+                        saveSettings()
+                    end
+                    xBox.FocusLost:Connect(saveBoxes)
+                    zBox.FocusLost:Connect(saveBoxes)
+                end
+            end
+
+            -- Section RIGHT
+            makeSection("▶ Right Waypoints", Color3.fromRGB(100, 180, 255), rightWaypoints, "rightWaypoints", 30)
+            -- Section LEFT
+            local leftStart = 30 + 22 + NB * ROW_H + 10
+            makeSection("◀ Left Waypoints", Color3.fromRGB(255, 150, 200), leftWaypoints, "leftWaypoints", leftStart)
+        end
+    else
+        local gui = lp.PlayerGui:FindFirstChild("SetPointsGui")
+        if gui then gui:Destroy() end
+    end
+
 elseif text == "Auto Right" then
     if enabled then autoLoopRight=true createAutoRightGui() startPatrol("right") else destroyAutoRightGui() end
 
@@ -3140,4 +3284,81 @@ do
             else
                 textbox.Text = tostring(MEDUSA_RADIUS)
             end
- 
+        end
+    end)
+end
+
+-- Melee Aimbot Range
+do
+    local parentFrame = frames["Settings"]
+
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1,0,0,45)
+    container.BackgroundColor3 = Color3.fromRGB(15,15,15)
+    container.BackgroundTransparency = 0.2
+    container.Parent = parentFrame
+    Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
+    Instance.new("UIStroke", container).Color = Color3.fromRGB(0,120,255)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.6,0,1,0)
+    label.Position = UDim2.new(0,12,0,0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 14
+    label.TextColor3 = Color3.fromRGB(0,120,255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = "Range Melee Aimbot"
+    label.Parent = container
+
+    local textbox = Instance.new("TextBox")
+    textbox.Size = UDim2.new(0,80,0,30)
+    textbox.Position = UDim2.new(1,-90,0.5,-15)
+    textbox.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    textbox.TextColor3 = Color3.new(1,1,1)
+    textbox.Font = Enum.Font.Gotham
+    textbox.TextSize = 14
+    textbox.Text = tostring(MELEE_RANGE)
+    textbox.ClearTextOnFocus = false
+    textbox.Parent = container
+    Instance.new("UICorner", textbox).CornerRadius = UDim.new(0,6)
+    Instance.new("UIStroke", textbox).Color = Color3.fromRGB(0,120,255)
+
+    textbox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            local num = tonumber(textbox.Text)
+            if num and num > 1 and num <= 50 then
+                MELEE_RANGE = num
+                savedSettings["MELEE_RANGE"] = MELEE_RANGE
+                saveSettings()
+            else
+                textbox.Text = tostring(MELEE_RANGE)
+            end
+        end
+    end)
+end
+
+ShowSection("Combat")
+
+-- OPEN / CLOSE HUB
+local opened = false
+
+local function toggleHub()
+    opened = not opened
+    if opened then
+        TweenService:Create(hub, TweenInfo.new(0.3), {Position = UDim2.new(0,20,0.5,-HUB_HEIGHT/2)}):Play()
+    else
+        TweenService:Create(hub, TweenInfo.new(0.3), {Position = UDim2.new(0,-350,0.5,-HUB_HEIGHT/2)}):Play()
+    end
+end
+
+-- Bouton mobile (≡)
+toggleBtn.MouseButton1Click:Connect(toggleHub)
+
+-- Keybind PC : RightShift ouvre/ferme le hub
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        toggleHub()
+    end
+end)
