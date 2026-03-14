@@ -2856,22 +2856,20 @@ elseif text == "Auto Walk" then
                                 local prompt = findNearestSteal(root)
                                 if prompt then
                                     progressBarBg.Visible = true
-                                    -- Lire le vrai HoldDuration du prompt (ex: 8s)
-                                    -- On le divise par 10 pour aller 10x plus vite
                                     local holdDur = prompt.HoldDuration
-                                    local STEAL_DURATION = math.max(holdDur / 999, 0.1)
+                                    local STEAL_DURATION = math.max(holdDur / 15, 0.1)
                                     local startTime = tick()
+                                    -- Spam fireproximityprompt EN CONTINU pendant toute la durée
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
                                         local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
                                         progressFill.Size = UDim2.new(p, 0, 1, 0)
                                         percentLabel.Text = math.floor(p * 100) .. "%"
+                                        -- Spam continu dès le début
+                                        pcall(fireproximityprompt, prompt)
                                         if p >= 1 then
-                                            pcall(fireproximityprompt, prompt)
-                                            task.wait(0.05)
-                                            pcall(fireproximityprompt, prompt)
                                             startTime = tick()
                                         end
-                                        task.wait()
+                                        task.wait(0.03)
                                     end
                                     resetBar()
                                 end
