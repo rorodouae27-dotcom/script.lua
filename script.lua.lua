@@ -2122,45 +2122,59 @@ lp.CharacterAdded:Connect(function()
 end)
 
 -- =====================================================
--- AUTO PLAY UI (waypoints éditables, style screenshot)
+-- AUTO PLAY UI - UN SEUL UI, DETECTION AUTO DU COTE
 -- =====================================================
 
-local autoPlayGui = nil
+local autoPlayGui  = nil
 local autoRightBtn = nil
 local autoLeftBtn  = nil
+local autoRightGui = nil
+local autoLeftGui  = nil
 
-local function makeAutoPlayUI(mode)
-    -- mode = "right" ou "left"
-    local guiName = mode == "right" and "AutoRightGui" or "AutoLeftGui"
-    local title   = mode == "right" and "▶ Auto Right" or "◀ Auto Left"
-    local waypoints = mode == "right" and rightWaypoints or leftWaypoints
-    local speed   = mode == "right" and 60 or 60
-    local delay   = 0.03
+local function detectSide()
+    -- Compare ta position au 1er waypoint de chaque route
+    -- Choisit le plus proche
+    local char = lp.Character
+    if not char then return "right" end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return "right" end
+    local pos = root.Position
+    local dRight = (Vector3.new(rightWaypoints[1].X, pos.Y, rightWaypoints[1].Z) - Vector3.new(pos.X, pos.Y, pos.Z)).Magnitude
+    local dLeft  = (Vector3.new(leftWaypoints[1].X,  pos.Y, leftWaypoints[1].Z)  - Vector3.new(pos.X, pos.Y, pos.Z)).Magnitude
+    return dRight <= dLeft and "right" or "left"
+end
 
-    local sg = Instance.new("ScreenGui")
-    sg.Name = guiName
-    sg.ResetOnSpawn = false
-    sg.Parent = game:GetService("CoreGui")
+local function createAutoPlayGui()
+    if autoPlayGui then return end
 
+    autoPlayGui = Instance.new("ScreenGui")
+    autoPlayGui.Name = "AutoPlayGui"
+    autoPlayGui.ResetOnSpawn = false
+    autoPlayGui.Parent = game:GetService("CoreGui")
+
+    -- 4 waypoints right + 4 left = 8 rows + header + play + delay
+    local NB = 4
+    local ROW_H = 34
+    local frameH = 55 + (NB * ROW_H) + 40
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 220, 0, 60 + #waypoints * 36 + 40)
-    frame.Position = mode == "right" and UDim2.new(0.5, 20, 0.3, 0) or UDim2.new(0.5, -240, 0.3, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(10, 12, 20)
+    frame.Size = UDim2.new(0, 230, 0, frameH)
+    frame.Position = UDim2.new(0.5, -115, 0.3, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(8, 10, 18)
     frame.BackgroundTransparency = 0.05
     frame.Active = true
     frame.Draggable = true
-    frame.Parent = sg
+    frame.Parent = autoPlayGui
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-    local stroke = Instance.new("UIStroke", frame)
-    stroke.Color = Color3.fromRGB(0, 120, 255)
-    stroke.Thickness = 2
+    local fStroke = Instance.new("UIStroke", frame)
+    fStroke.Color = Color3.fromRGB(0, 120, 255)
+    fStroke.Thickness = 2
 
     -- Titre
     local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, 0, 0, 30)
-    titleLbl.Position = UDim2.new(0, 0, 0, 5)
+    titleLbl.Size = UDim2.new(1, 0, 0, 28)
+    titleLbl.Position = UDim2.new(0, 0, 0, 4)
     titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = title
+    titleLbl.Text = "⚡ Auto Play"
     titleLbl.Font = Enum.Font.GothamBold
     titleLbl.TextSize = 14
     titleLbl.TextColor3 = Color3.fromRGB(0, 150, 255)
@@ -2168,8 +2182,8 @@ local function makeAutoPlayUI(mode)
 
     -- Bouton PLAY
     local playBtn = Instance.new("TextButton")
-    playBtn.Size = UDim2.new(1, -20, 0, 32)
-    playBtn.Position = UDim2.new(0, 10, 0, 32)
+    playBtn.Size = UDim2.new(1, -20, 0, 30)
+    playBtn.Position = UDim2.new(0, 10, 0, 30)
     playBtn.Text = "PLAY"
     playBtn.Font = Enum.Font.GothamBold
     playBtn.TextSize = 15
@@ -2178,59 +2192,119 @@ local function makeAutoPlayUI(mode)
     playBtn.Parent = frame
     Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 8)
 
-    if mode == "right" then autoRightBtn = playBtn
-    else autoLeftBtn = playBtn end
+    -- Status (affiche quel côté)
+    local statusLbl = Instance.new("TextLabel")
+    statusLbl.Size = UDim2.new(1, 0, 0, 16)
+    statusLbl.Position = UDim2.new(0, 0, 0, 62)
+    statusLbl.BackgroundTransparency = 1
+    statusLbl.Text = "Points Right / Left :"
+    statusLbl.Font = Enum.Font.Gotham
+    statusLbl.TextSize = 10
+    statusLbl.TextColor3 = Color3.fromRGB(140, 140, 140)
+    statusLbl.Parent = frame
 
-    -- Champs waypoints
-    local wpBoxes = {} -- { {xBox, zBox}, ... }
-    for i, wp in ipairs(waypoints) do
-        local y = 70 + (i-1) * 36
+    -- Waypoints RIGHT + LEFT (4 lignes chacun)
+    local wpBoxesRight = {}
+    local wpBoxesLeft  = {}
+
+    for i = 1, NB do
+        local y = 78 + (i-1) * ROW_H
 
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(0, 50, 0, 28)
-        lbl.Position = UDim2.new(0, 5, 0, y)
+        lbl.Size = UDim2.new(0, 45, 0, 26)
+        lbl.Position = UDim2.new(0, 2, 0, y)
         lbl.BackgroundTransparency = 1
-        lbl.Text = "Point "..i..":"
+        lbl.Text = "P"..i..":"
         lbl.Font = Enum.Font.Gotham
         lbl.TextSize = 11
-        lbl.TextColor3 = Color3.fromRGB(180,180,180)
+        lbl.TextColor3 = Color3.fromRGB(160,160,160)
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.Parent = frame
 
-        local xBox = Instance.new("TextBox")
-        xBox.Size = UDim2.new(0, 70, 0, 26)
-        xBox.Position = UDim2.new(0, 55, 0, y+1)
-        xBox.BackgroundColor3 = Color3.fromRGB(20,25,40)
-        xBox.TextColor3 = Color3.fromRGB(255,200,50)
-        xBox.Font = Enum.Font.GothamBold
-        xBox.TextSize = 12
-        xBox.Text = tostring(math.floor(wp.X*100)/100)
-        xBox.ClearTextOnFocus = false
-        xBox.Parent = frame
-        Instance.new("UICorner", xBox).CornerRadius = UDim.new(0,6)
-        Instance.new("UIStroke", xBox).Color = Color3.fromRGB(0,80,180)
+        -- RIGHT X/Z
+        local rxBox = Instance.new("TextBox")
+        rxBox.Size = UDim2.new(0, 52, 0, 24)
+        rxBox.Position = UDim2.new(0, 42, 0, y+1)
+        rxBox.BackgroundColor3 = Color3.fromRGB(15,20,35)
+        rxBox.TextColor3 = Color3.fromRGB(255,200,50)
+        rxBox.Font = Enum.Font.GothamBold
+        rxBox.TextSize = 10
+        rxBox.Text = tostring(math.floor(rightWaypoints[i].X*10)/10)
+        rxBox.ClearTextOnFocus = false
+        rxBox.Parent = frame
+        Instance.new("UICorner", rxBox).CornerRadius = UDim.new(0,5)
+        Instance.new("UIStroke", rxBox).Color = Color3.fromRGB(0,80,180)
 
-        local zBox = Instance.new("TextBox")
-        zBox.Size = UDim2.new(0, 70, 0, 26)
-        zBox.Position = UDim2.new(0, 135, 0, y+1)
-        zBox.BackgroundColor3 = Color3.fromRGB(20,25,40)
-        zBox.TextColor3 = Color3.fromRGB(100,220,120)
-        zBox.Font = Enum.Font.GothamBold
-        zBox.TextSize = 12
-        zBox.Text = tostring(math.floor(wp.Z*100)/100)
-        zBox.ClearTextOnFocus = false
-        zBox.Parent = frame
-        Instance.new("UICorner", zBox).CornerRadius = UDim.new(0,6)
-        Instance.new("UIStroke", zBox).Color = Color3.fromRGB(0,80,180)
+        local rzBox = Instance.new("TextBox")
+        rzBox.Size = UDim2.new(0, 52, 0, 24)
+        rzBox.Position = UDim2.new(0, 98, 0, y+1)
+        rzBox.BackgroundColor3 = Color3.fromRGB(15,20,35)
+        rzBox.TextColor3 = Color3.fromRGB(100,220,120)
+        rzBox.Font = Enum.Font.GothamBold
+        rzBox.TextSize = 10
+        rzBox.Text = tostring(math.floor(rightWaypoints[i].Z*10)/10)
+        rzBox.ClearTextOnFocus = false
+        rzBox.Parent = frame
+        Instance.new("UICorner", rzBox).CornerRadius = UDim.new(0,5)
+        Instance.new("UIStroke", rzBox).Color = Color3.fromRGB(0,80,180)
 
-        table.insert(wpBoxes, {xBox, zBox})
+        -- LEFT X/Z
+        local lxBox = Instance.new("TextBox")
+        lxBox.Size = UDim2.new(0, 36, 0, 24)
+        lxBox.Position = UDim2.new(0, 156, 0, y+1)
+        lxBox.BackgroundColor3 = Color3.fromRGB(25,10,30)
+        lxBox.TextColor3 = Color3.fromRGB(255,150,200)
+        lxBox.Font = Enum.Font.GothamBold
+        lxBox.TextSize = 9
+        lxBox.Text = tostring(math.floor(leftWaypoints[i].X*10)/10)
+        lxBox.ClearTextOnFocus = false
+        lxBox.Parent = frame
+        Instance.new("UICorner", lxBox).CornerRadius = UDim.new(0,5)
+        Instance.new("UIStroke", lxBox).Color = Color3.fromRGB(120,0,120)
+
+        local lzBox = Instance.new("TextBox")
+        lzBox.Size = UDim2.new(0, 36, 0, 24)
+        lzBox.Position = UDim2.new(0, 196, 0, y+1)
+        lzBox.BackgroundColor3 = Color3.fromRGB(25,10,30)
+        lzBox.TextColor3 = Color3.fromRGB(200,150,255)
+        lzBox.Font = Enum.Font.GothamBold
+        lzBox.TextSize = 9
+        lzBox.Text = tostring(math.floor(leftWaypoints[i].Z*10)/10)
+        lzBox.ClearTextOnFocus = false
+        lzBox.Parent = frame
+        Instance.new("UICorner", lzBox).CornerRadius = UDim.new(0,5)
+        Instance.new("UIStroke", lzBox).Color = Color3.fromRGB(120,0,120)
+
+        table.insert(wpBoxesRight, {rxBox, rzBox})
+        table.insert(wpBoxesLeft,  {lxBox, lzBox})
     end
 
+    -- Légende
+    local legR = Instance.new("TextLabel")
+    legR.Size = UDim2.new(0, 110, 0, 14)
+    legR.Position = UDim2.new(0, 42, 0, 64)
+    legR.BackgroundTransparency = 1
+    legR.Text = "Right X     Z"
+    legR.Font = Enum.Font.Gotham
+    legR.TextSize = 9
+    legR.TextColor3 = Color3.fromRGB(255,200,50)
+    legR.Parent = frame
+
+    local legL = Instance.new("TextLabel")
+    legL.Size = UDim2.new(0, 80, 0, 14)
+    legL.Position = UDim2.new(0, 156, 0, 64)
+    legL.BackgroundTransparency = 1
+    legL.Text = "Left X  Z"
+    legL.Font = Enum.Font.Gotham
+    legL.TextSize = 9
+    legL.TextColor3 = Color3.fromRGB(255,150,200)
+    legL.Parent = frame
+
     -- Delay
-    local delayY = 70 + #waypoints * 36 + 4
+    local delayY = 78 + NB * ROW_H + 4
     local delayLbl = Instance.new("TextLabel")
-    delayLbl.Size = UDim2.new(0, 80, 0, 26)
-    delayLbl.Position = UDim2.new(0, 5, 0, delayY)
+    delayLbl.Size = UDim2.new(0, 80, 0, 24)
+    delayLbl.Position = UDim2.new(0, 2, 0, delayY)
     delayLbl.BackgroundTransparency = 1
     delayLbl.Text = "Delay (s):"
     delayLbl.Font = Enum.Font.Gotham
@@ -2240,103 +2314,87 @@ local function makeAutoPlayUI(mode)
     delayLbl.Parent = frame
 
     local delayBox = Instance.new("TextBox")
-    delayBox.Size = UDim2.new(0, 70, 0, 26)
-    delayBox.Position = UDim2.new(0, 135, 0, delayY)
-    delayBox.BackgroundColor3 = Color3.fromRGB(20,25,40)
+    delayBox.Size = UDim2.new(0, 60, 0, 24)
+    delayBox.Position = UDim2.new(0, 155, 0, delayY)
+    delayBox.BackgroundColor3 = Color3.fromRGB(15,20,35)
     delayBox.TextColor3 = Color3.new(1,1,1)
     delayBox.Font = Enum.Font.GothamBold
-    delayBox.TextSize = 12
-    delayBox.Text = tostring(delay)
+    delayBox.TextSize = 11
+    delayBox.Text = "0.03"
     delayBox.ClearTextOnFocus = false
     delayBox.Parent = frame
-    Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0,6)
+    Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0,5)
     Instance.new("UIStroke", delayBox).Color = Color3.fromRGB(0,80,180)
 
-    -- Logique PLAY
-    local function readWaypoints()
+    local function readWaypoints(mode)
+        local boxes = mode == "right" and wpBoxesRight or wpBoxesLeft
+        local src = mode == "right" and rightWaypoints or leftWaypoints
         local pts = {}
-        for i, boxes in ipairs(wpBoxes) do
-            local x = tonumber(boxes[1].Text) or waypoints[i].X
-            local z = tonumber(boxes[2].Text) or waypoints[i].Z
-            local y2 = waypoints[i].Y
-            table.insert(pts, Vector3.new(x, y2, z))
+        for i, b in ipairs(boxes) do
+            local x = tonumber(b[1].Text) or src[i].X
+            local z = tonumber(b[2].Text) or src[i].Z
+            table.insert(pts, Vector3.new(x, src[i].Y, z))
         end
         return pts
     end
 
     playBtn.MouseButton1Click:Connect(function()
-        if patrolMode == mode then
-            -- STOP
-            if mode == "right" then autoLoopRight = false else autoLoopLeft = false end
+        if patrolMode ~= "none" then
+            autoLoopRight = false
+            autoLoopLeft  = false
             stopPatrol(true)
             playBtn.Text = "PLAY"
             playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+            statusLbl.Text = "En attente..."
+            statusLbl.TextColor3 = Color3.fromRGB(140,140,140)
         else
-            -- START
-            local pts = readWaypoints()
-            local d = tonumber(delayBox.Text) or 0.03
-            if mode == "right" then
+            local side = detectSide()
+            local pts = readWaypoints(side)
+            if side == "right" then
                 rightWaypoints = pts
                 autoLoopRight = true
+                autoLoopLeft  = false
             else
                 leftWaypoints = pts
-                autoLoopLeft = true
+                autoLoopLeft  = true
+                autoLoopRight = false
             end
-            startPatrol(mode)
+            startPatrol(side)
             playBtn.Text = "STOP"
             playBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+            statusLbl.Text = side == "right" and "▶ Route DROITE" or "◀ Route GAUCHE"
+            statusLbl.TextColor3 = side == "right" and Color3.fromRGB(100,200,255) or Color3.fromRGB(255,150,200)
         end
     end)
 
-    -- Update bouton quand patrol s'arrête
+    -- Update statut en temps réel
     task.spawn(function()
-        while sg and sg.Parent do
-            task.wait(0.2)
-            if patrolMode ~= mode and playBtn and playBtn.Parent then
-                playBtn.Text = "PLAY"
-                playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-            elseif patrolMode == mode and playBtn and playBtn.Parent then
-                playBtn.Text = "STOP"
-                playBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+        while autoPlayGui do
+            task.wait(0.3)
+            if patrolMode == "none" then
+                if playBtn and playBtn.Parent then
+                    playBtn.Text = "PLAY"
+                    playBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+                end
             end
         end
     end)
-
-    return sg
 end
 
-local autoRightGui = nil
-local autoLeftGui  = nil
-
-local function createAutoRightGui()
-    if autoRightGui then return end
-    autoRightGui = makeAutoPlayUI("right")
-end
-
-local function createAutoLeftGui()
-    if autoLeftGui then return end
-    autoLeftGui = makeAutoPlayUI("left")
-end
-
-local function destroyAutoRightGui()
+local function destroyAutoPlayGui()
     autoLoopRight = false
+    autoLoopLeft  = false
     stopPatrol(true)
-    if autoRightGui then
-        autoRightGui:Destroy()
-        autoRightGui = nil
-        autoRightBtn = nil
+    if autoPlayGui then
+        autoPlayGui:Destroy()
+        autoPlayGui = nil
     end
 end
 
-local function destroyAutoLeftGui()
-    autoLoopLeft = false
-    stopPatrol(true)
-    if autoLeftGui then
-        autoLeftGui:Destroy()
-        autoLeftGui = nil
-        autoLeftBtn = nil
-    end
-end
+local function createAutoRightGui() createAutoPlayGui() end
+local function createAutoLeftGui()  createAutoPlayGui() end
+local function destroyAutoRightGui() destroyAutoPlayGui() end
+local function destroyAutoLeftGui()  destroyAutoPlayGui() end
 
 
 
@@ -2970,26 +3028,11 @@ elseif text == "Melee Aimbot" then
         disableMeleeAimbot()
     end
 
-elseif text == "Auto Right" then
+elseif text == "Auto Play" then
     if enabled then
-        autoLoopRight = true
-        createAutoRightGui()
-        startPatrol("right")
+        createAutoPlayGui()
     else
-        autoLoopRight = false
-        stopPatrol(true)
-        destroyAutoRightGui()
-    end
-
-elseif text == "Auto Left" then
-    if enabled then
-        autoLoopLeft = true
-        createAutoLeftGui()
-        startPatrol("left")
-    else
-        autoLoopLeft = false
-        stopPatrol(true)
-        destroyAutoLeftGui()
+        destroyAutoPlayGui()
     end
 
 elseif text == "Auto Walk" then
@@ -3122,7 +3165,7 @@ elseif text == "Auto Walk" then
     }
 end
 
-local combatFuncs = {"Melee Aimbot","Auto Steal Nearest","Auto Walk","Auto Right","Auto Left","Lock Target","Auto Medusa","Auto Bat","Anti Sentry"}
+local combatFuncs = {"Melee Aimbot","Auto Steal Nearest","Auto Walk","Auto Play","Lock Target","Auto Medusa","Auto Bat","Anti Sentry"}
 for _,f in ipairs(combatFuncs) do CreateToggle("Combat",f) end
 
 local playerFuncs = {"Speed Customizer","No Walk Animation","Anti Ragdoll","Spin Body","Slow Fall","Float","Infinite Jump"}
