@@ -1,4 +1,3 @@
-
 --// leaked by discord.gg/cxyrohub
 local Lighting = game:GetService("Lighting")
 local optimizerEnabled = false
@@ -2860,7 +2859,7 @@ elseif text == "Auto Walk" then
                                     -- Lire le vrai HoldDuration du prompt (ex: 8s)
                                     -- On le divise par 10 pour aller 10x plus vite
                                     local holdDur = prompt.HoldDuration
-                                    local STEAL_DURATION = math.max(holdDur / 999, 0.1)
+                                    local STEAL_DURATION = math.max(holdDur / 999, 0.05)
                                     local startTime = tick()
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
                                         local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
@@ -3163,4 +3162,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleHub()
     end
 end)
-
