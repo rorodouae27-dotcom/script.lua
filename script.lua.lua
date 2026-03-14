@@ -1907,7 +1907,7 @@ end
 
 local rightWaypoints = {
     Vector3.new(-473.04, -6.99, 29.71),
-    Vector3.new(-487.45, -4.80, 23.27),
+    Vector3.new(-483.57, -5.10, 18.74),
     Vector3.new(-475.00, -6.99, 26.43),
     Vector3.new(-474.67, -6.94, 105.48),
 }
@@ -2106,77 +2106,151 @@ lp.CharacterAdded:Connect(function()
     stopPatrol()
 end)
 
--- GUI bouton mobile Auto Right
-local function createAutoRightGui()
-    if autoRightGui then return end
+-- GUI Auto Play (contient Right + Left)
+local autoPlayGui = nil
 
-    autoRightGui = Instance.new("ScreenGui")
-    autoRightGui.Name = "AutoRightGui"
-    autoRightGui.ResetOnSpawn = false
-    autoRightGui.Parent = game:GetService("CoreGui")
+local function createAutoPlayGui()
+    if autoPlayGui then return end
 
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,140,0,50)
-    btn.Position = UDim2.new(0.5,80,0.75,0)
-    btn.Text = "AutoRight"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-    btn.Active = true
-    btn.Draggable = true
-    btn.Parent = autoRightGui
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
+    autoPlayGui = Instance.new("ScreenGui")
+    autoPlayGui.Name = "AutoPlayGui"
+    autoPlayGui.ResetOnSpawn = false
+    autoPlayGui.Parent = game:GetService("CoreGui")
 
-    autoRightBtn = btn
+    -- Panel principal
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 130)
+    frame.Position = UDim2.new(0.5, -150, 0.75, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    frame.BackgroundTransparency = 0.2
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = autoPlayGui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Color = Color3.fromRGB(0, 120, 255)
+    stroke.Thickness = 2
 
-    btn.MouseButton1Click:Connect(doAutoRight)
+    -- Titre
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 35)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "⚡ Auto Play"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 16
+    title.TextColor3 = Color3.fromRGB(0, 120, 255)
+    title.Parent = frame
+
+    -- Bouton AUTO RIGHT
+    local btnRight = Instance.new("TextButton")
+    btnRight.Size = UDim2.new(0, 130, 0, 45)
+    btnRight.Position = UDim2.new(0, 10, 0, 40)
+    btnRight.Text = "▶ AutoRight"
+    btnRight.Font = Enum.Font.GothamBold
+    btnRight.TextSize = 14
+    btnRight.TextColor3 = Color3.new(1, 1, 1)
+    btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    btnRight.Parent = frame
+    Instance.new("UICorner", btnRight).CornerRadius = UDim.new(0, 10)
+
+    -- Bouton AUTO LEFT
+    local btnLeft = Instance.new("TextButton")
+    btnLeft.Size = UDim2.new(0, 130, 0, 45)
+    btnLeft.Position = UDim2.new(0, 155, 0, 40)
+    btnLeft.Text = "◀ AutoLeft"
+    btnLeft.Font = Enum.Font.GothamBold
+    btnLeft.TextSize = 14
+    btnLeft.TextColor3 = Color3.new(1, 1, 1)
+    btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    btnLeft.Parent = frame
+    Instance.new("UICorner", btnLeft).CornerRadius = UDim.new(0, 10)
+
+    -- Status label
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(1, 0, 0, 20)
+    status.Position = UDim2.new(0, 0, 1, -22)
+    status.BackgroundTransparency = 1
+    status.Text = "En attente..."
+    status.Font = Enum.Font.Gotham
+    status.TextSize = 12
+    status.TextColor3 = Color3.fromRGB(160, 160, 160)
+    status.Parent = frame
+
+    autoRightBtn = btnRight
+    autoLeftBtn = btnLeft
+
+    -- Connecter les boutons
+    btnRight.MouseButton1Click:Connect(function()
+        doAutoRight()
+        if patrolMode == "right" then
+            btnRight.Text = "⏹ STOP Right"
+            btnRight.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            btnLeft.Text = "◀ AutoLeft"
+            btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+            status.Text = "🟢 Route droite en cours..."
+            status.TextColor3 = Color3.fromRGB(0, 200, 100)
+        else
+            btnRight.Text = "▶ AutoRight"
+            btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+            status.Text = "En attente..."
+            status.TextColor3 = Color3.fromRGB(160, 160, 160)
+        end
+    end)
+
+    btnLeft.MouseButton1Click:Connect(function()
+        doAutoLeft()
+        if patrolMode == "left" then
+            btnLeft.Text = "⏹ STOP Left"
+            btnLeft.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            btnRight.Text = "▶ AutoRight"
+            btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+            status.Text = "🟢 Route gauche en cours..."
+            status.TextColor3 = Color3.fromRGB(0, 200, 100)
+        else
+            btnLeft.Text = "◀ AutoLeft"
+            btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+            status.Text = "En attente..."
+            status.TextColor3 = Color3.fromRGB(160, 160, 160)
+        end
+    end)
+
+    -- Reset boutons quand patrol termine
+    task.spawn(function()
+        while autoPlayGui do
+            task.wait(0.2)
+            if patrolMode == "none" then
+                if btnRight and btnRight.Parent then
+                    btnRight.Text = "▶ AutoRight"
+                    btnRight.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+                end
+                if btnLeft and btnLeft.Parent then
+                    btnLeft.Text = "◀ AutoLeft"
+                    btnLeft.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+                end
+                if status and status.Parent then
+                    status.Text = "En attente..."
+                    status.TextColor3 = Color3.fromRGB(160, 160, 160)
+                end
+            end
+        end
+    end)
 end
 
-local function destroyAutoRightGui()
+local function destroyAutoPlayGui()
     stopPatrol()
-    if autoRightGui then
-        autoRightGui:Destroy()
-        autoRightGui = nil
+    if autoPlayGui then
+        autoPlayGui:Destroy()
+        autoPlayGui = nil
         autoRightBtn = nil
-    end
-end
-
--- GUI bouton mobile Auto Left
-local function createAutoLeftGui()
-    if autoLeftGui then return end
-
-    autoLeftGui = Instance.new("ScreenGui")
-    autoLeftGui.Name = "AutoLeftGui"
-    autoLeftGui.ResetOnSpawn = false
-    autoLeftGui.Parent = game:GetService("CoreGui")
-
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,140,0,50)
-    btn.Position = UDim2.new(0.5,-220,0.75,0)
-    btn.Text = "AutoLeft"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-    btn.Active = true
-    btn.Draggable = true
-    btn.Parent = autoLeftGui
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
-
-    autoLeftBtn = btn
-
-    btn.MouseButton1Click:Connect(doAutoLeft)
-end
-
-local function destroyAutoLeftGui()
-    stopPatrol()
-    if autoLeftGui then
-        autoLeftGui:Destroy()
-        autoLeftGui = nil
         autoLeftBtn = nil
     end
 end
+
+local function createAutoRightGui() end -- garde pour compatibilité
+local function createAutoLeftGui() end
+local function destroyAutoRightGui() destroyAutoPlayGui() end
+local function destroyAutoLeftGui() destroyAutoPlayGui() end
 
 
 
@@ -2809,20 +2883,11 @@ elseif text == "Melee Aimbot" then
         disableMeleeAimbot()
     end
 
-elseif text == "Auto Right" then
+elseif text == "Auto Play" then
     if enabled then
-        createAutoRightGui()
-        doAutoRight()
+        createAutoPlayGui()
     else
-        destroyAutoRightGui()
-    end
-
-elseif text == "Auto Left" then
-    if enabled then
-        createAutoLeftGui()
-        doAutoLeft()
-    else
-        destroyAutoLeftGui()
+        destroyAutoPlayGui()
     end
 
 elseif text == "Auto Walk" then
@@ -2856,16 +2921,20 @@ elseif text == "Auto Walk" then
                                 local prompt = findNearestSteal(root)
                                 if prompt then
                                     progressBarBg.Visible = true
-                                    local start = tick()
+                                    -- Lire le vrai HoldDuration du prompt (ex: 8s)
+                                    -- On le divise par 10 pour aller 10x plus vite
+                                    local holdDur = prompt.HoldDuration
+                                    local STEAL_DURATION = math.max(holdDur / 999, 0.1)
+                                    local startTime = tick()
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
-                                        local p = math.clamp((tick() - start) / 0.05, 0, 1)
+                                        local p = math.clamp((tick() - startTime) / STEAL_DURATION, 0, 1)
                                         progressFill.Size = UDim2.new(p, 0, 1, 0)
-                                        percentLabel.Text = math.floor(p*100).."%"
-                                        if p >= 0.99 then
+                                        percentLabel.Text = math.floor(p * 100) .. "%"
+                                        if p >= 1 then
                                             pcall(fireproximityprompt, prompt)
-                                            task.wait(0.1)
+                                            task.wait(0.05)
                                             pcall(fireproximityprompt, prompt)
-                                            start = tick()
+                                            startTime = tick()
                                         end
                                         task.wait()
                                     end
@@ -2874,7 +2943,7 @@ elseif text == "Auto Walk" then
                             end
                         end
                         resetBar()
-                        task.wait(0.15)
+                        task.wait(0.05)
                     end
                     resetBar(true)
                     hideSquare()
@@ -2950,7 +3019,7 @@ elseif text == "Auto Walk" then
     }
 end
 
-local combatFuncs = {"Melee Aimbot","Auto Steal Nearest","Auto Walk","Auto Right","Auto Left","Lock Target","Auto Medusa","Auto Bat","Anti Sentry"}
+local combatFuncs = {"Melee Aimbot","Auto Steal Nearest","Auto Walk","Auto Play","Lock Target","Auto Medusa","Auto Bat","Anti Sentry"}
 for _,f in ipairs(combatFuncs) do CreateToggle("Combat",f) end
 
 local playerFuncs = {"Speed Customizer","No Walk Animation","Anti Ragdoll","Spin Body","Slow Fall","Float","Infinite Jump"}
