@@ -2158,134 +2158,38 @@ loadSettings()
 -- AUTO RIGHT / AUTO LEFT - GUIs séparées avec keybinds
 -- =====================================================
 
-local autoRightGui = nil
-local autoLeftGui  = nil
-local autoRightBtn = nil
-local autoLeftBtn  = nil
-local boundKeyRight = nil
-local boundKeyLeft  = nil
+-- auto right/left vars declared above
 
 local function createAutoRightGui()
     if autoRightGui then return end
-
     autoRightGui = Instance.new("ScreenGui")
     autoRightGui.Name = "AutoRightGui"
     autoRightGui.ResetOnSpawn = false
     autoRightGui.Parent = game:GetService("CoreGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 160, 0, 90)
-    frame.Position = UDim2.new(0.5, 20, 0.75, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(8, 12, 22)
-    frame.BackgroundTransparency = 0
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = autoRightGui
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-    local s = Instance.new("UIStroke", frame)
-    s.Color = Color3.fromRGB(0, 120, 255)
-    s.Thickness = 2
-
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, 0, 0, 24)
-    titleLbl.Position = UDim2.new(0, 0, 0, 4)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = "▶ Auto Right"
-    titleLbl.Font = Enum.Font.GothamBold
-    titleLbl.TextSize = 13
-    titleLbl.TextColor3 = Color3.fromRGB(0, 150, 255)
-    titleLbl.Parent = frame
-
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -16, 0, 28)
-    btn.Position = UDim2.new(0, 8, 0, 30)
-    btn.Text = "PLAY"
+    btn.Size = UDim2.new(0, 140, 0, 50)
+    btn.Position = UDim2.new(0.5, 80, 0.75, 0)
+    btn.Text = "AutoRight"
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
+    btn.TextSize = 16
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+    btn.Active = true
+    btn.Draggable = true
+    btn.Parent = autoRightGui
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
     autoRightBtn = btn
-
-    -- Keybind button
-    local keyBtn = Instance.new("TextButton")
-    keyBtn.Size = UDim2.new(1, -16, 0, 20)
-    keyBtn.Position = UDim2.new(0, 8, 0, 62)
-    keyBtn.BackgroundColor3 = Color3.fromRGB(20, 25, 40)
-    keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-    keyBtn.Font = Enum.Font.Gotham
-    keyBtn.TextSize = 11
-    keyBtn.Text = boundKeyRight and "["..tostring(boundKeyRight):gsub("Enum.KeyCode.","").."]" or "[+ Key]"
-    keyBtn.Parent = frame
-    Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 4)
-    Instance.new("UIStroke", keyBtn).Color = Color3.fromRGB(60, 60, 60)
-
-    -- Keybind assign
-    local listening = false
-    local justBound = false
-    keyBtn.MouseButton1Click:Connect(function()
-        if listening then return end
-        listening = true
-        keyBtn.Text = "..."
-        keyBtn.TextColor3 = Color3.fromRGB(255, 200, 0)
-        local conn
-        conn = UserInputService.InputBegan:Connect(function(input, _gp)
-            if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
-            local keyName = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
-            if keyName == "Escape" then
-                boundKeyRight = nil
-                keyBtn.Text = "[+ Key]"
-                keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-                savedSettings["autoKeyRight"] = nil
-            else
-                boundKeyRight = input.KeyCode
-                keyBtn.Text = "["..keyName.."]"
-                keyBtn.TextColor3 = Color3.fromRGB(0, 200, 100)
-                justBound = true
-                task.delay(0.4, function() justBound = false end)
-                savedSettings["autoKeyRight"] = keyName
-            end
-            saveSettings()
-            listening = false
-            conn:Disconnect()
-        end)
-    end)
-    keyBtn.MouseButton2Click:Connect(function()
-        boundKeyRight = nil
-        keyBtn.Text = "[+ Key]"
-        keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-        savedSettings["autoKeyRight"] = nil
-        saveSettings()
-    end)
-
-    -- Restaurer keybind sauvegardé
-    if savedSettings["autoKeyRight"] then
-        local ok, kc = pcall(function() return Enum.KeyCode[savedSettings["autoKeyRight"]] end)
-        if ok and kc then
-            boundKeyRight = kc
-            keyBtn.Text = "["..savedSettings["autoKeyRight"].."]"
-            keyBtn.TextColor3 = Color3.fromRGB(0, 200, 100)
-        end
-    end
-
-    -- Listener keybind global
-    UserInputService.InputBegan:Connect(function(input, gp)
-        if gp then return end
-        if not listening and not justBound and boundKeyRight and input.KeyCode == boundKeyRight then
-            btn.MouseButton1Click:Fire()
-        end
-    end)
 
     btn.MouseButton1Click:Connect(function()
         if patrolMode == "right" then
             autoLoopRight = false
             stopPatrol(true)
-            btn.Text = "PLAY"
+            btn.Text = "AutoRight"
             btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         else
             autoLoopRight = true
-            autoLoopLeft  = false
+            autoLoopLeft = false
             startPatrol("right")
             btn.Text = "STOP"
             btn.BackgroundColor3 = Color3.fromRGB(200,0,0)
@@ -2296,7 +2200,7 @@ local function createAutoRightGui()
         while autoRightGui do
             task.wait(0.2)
             if patrolMode ~= "right" and btn and btn.Parent then
-                btn.Text = "PLAY"
+                btn.Text = "AutoRight"
                 btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             end
         end
@@ -2315,121 +2219,33 @@ end
 
 local function createAutoLeftGui()
     if autoLeftGui then return end
-
     autoLeftGui = Instance.new("ScreenGui")
     autoLeftGui.Name = "AutoLeftGui"
     autoLeftGui.ResetOnSpawn = false
     autoLeftGui.Parent = game:GetService("CoreGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 160, 0, 90)
-    frame.Position = UDim2.new(0.5, -180, 0.75, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(8, 12, 22)
-    frame.BackgroundTransparency = 0
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = autoLeftGui
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-    local s = Instance.new("UIStroke", frame)
-    s.Color = Color3.fromRGB(0, 120, 255)
-    s.Thickness = 2
-
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, 0, 0, 24)
-    titleLbl.Position = UDim2.new(0, 0, 0, 4)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = "◀ Auto Left"
-    titleLbl.Font = Enum.Font.GothamBold
-    titleLbl.TextSize = 13
-    titleLbl.TextColor3 = Color3.fromRGB(0, 150, 255)
-    titleLbl.Parent = frame
-
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -16, 0, 28)
-    btn.Position = UDim2.new(0, 8, 0, 30)
-    btn.Text = "PLAY"
+    btn.Size = UDim2.new(0, 140, 0, 50)
+    btn.Position = UDim2.new(0.5, -220, 0.75, 0)
+    btn.Text = "AutoLeft"
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
+    btn.TextSize = 16
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+    btn.Active = true
+    btn.Draggable = true
+    btn.Parent = autoLeftGui
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,16)
     autoLeftBtn = btn
-
-    -- Keybind button
-    local keyBtn = Instance.new("TextButton")
-    keyBtn.Size = UDim2.new(1, -16, 0, 20)
-    keyBtn.Position = UDim2.new(0, 8, 0, 62)
-    keyBtn.BackgroundColor3 = Color3.fromRGB(20, 25, 40)
-    keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-    keyBtn.Font = Enum.Font.Gotham
-    keyBtn.TextSize = 11
-    keyBtn.Text = boundKeyLeft and "["..tostring(boundKeyLeft):gsub("Enum.KeyCode.","").."]" or "[+ Key]"
-    keyBtn.Parent = frame
-    Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 4)
-    Instance.new("UIStroke", keyBtn).Color = Color3.fromRGB(60, 60, 60)
-
-    local listening = false
-    local justBound = false
-    keyBtn.MouseButton1Click:Connect(function()
-        if listening then return end
-        listening = true
-        keyBtn.Text = "..."
-        keyBtn.TextColor3 = Color3.fromRGB(255, 200, 0)
-        local conn
-        conn = UserInputService.InputBegan:Connect(function(input, _gp)
-            if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
-            local keyName = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
-            if keyName == "Escape" then
-                boundKeyLeft = nil
-                keyBtn.Text = "[+ Key]"
-                keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-                savedSettings["autoKeyLeft"] = nil
-            else
-                boundKeyLeft = input.KeyCode
-                keyBtn.Text = "["..keyName.."]"
-                keyBtn.TextColor3 = Color3.fromRGB(0, 200, 100)
-                justBound = true
-                task.delay(0.4, function() justBound = false end)
-                savedSettings["autoKeyLeft"] = keyName
-            end
-            saveSettings()
-            listening = false
-            conn:Disconnect()
-        end)
-    end)
-    keyBtn.MouseButton2Click:Connect(function()
-        boundKeyLeft = nil
-        keyBtn.Text = "[+ Key]"
-        keyBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-        savedSettings["autoKeyLeft"] = nil
-        saveSettings()
-    end)
-
-    if savedSettings["autoKeyLeft"] then
-        local ok, kc = pcall(function() return Enum.KeyCode[savedSettings["autoKeyLeft"]] end)
-        if ok and kc then
-            boundKeyLeft = kc
-            keyBtn.Text = "["..savedSettings["autoKeyLeft"].."]"
-            keyBtn.TextColor3 = Color3.fromRGB(0, 200, 100)
-        end
-    end
-
-    UserInputService.InputBegan:Connect(function(input, gp)
-        if gp then return end
-        if not listening and not justBound and boundKeyLeft and input.KeyCode == boundKeyLeft then
-            btn.MouseButton1Click:Fire()
-        end
-    end)
 
     btn.MouseButton1Click:Connect(function()
         if patrolMode == "left" then
             autoLoopLeft = false
             stopPatrol(true)
-            btn.Text = "PLAY"
+            btn.Text = "AutoLeft"
             btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         else
-            autoLoopLeft  = true
+            autoLoopLeft = true
             autoLoopRight = false
             startPatrol("left")
             btn.Text = "STOP"
@@ -2441,7 +2257,7 @@ local function createAutoLeftGui()
         while autoLeftGui do
             task.wait(0.2)
             if patrolMode ~= "left" and btn and btn.Parent then
-                btn.Text = "PLAY"
+                btn.Text = "AutoLeft"
                 btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
             end
         end
@@ -2457,8 +2273,6 @@ local function destroyAutoLeftGui()
         autoLeftBtn = nil
     end
 end
-
-
 
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -3406,9 +3220,9 @@ do
     end)
 end
 
+
 ShowSection("Combat")
 
--- OPEN / CLOSE HUB
 local opened = false
 
 local function toggleHub()
@@ -3420,10 +3234,8 @@ local function toggleHub()
     end
 end
 
--- Bouton mobile (≡)
 toggleBtn.MouseButton1Click:Connect(toggleHub)
 
--- Keybind PC : RightShift ouvre/ferme le hub
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
