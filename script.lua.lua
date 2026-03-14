@@ -1907,13 +1907,13 @@ end
 
 local rightWaypoints = {
     Vector3.new(-473.04, -6.99, 29.71),
-    Vector3.new(-483.57, -5.10, 18.74),
+    Vector3.new(-489.38, -4.85, 22.68),
     Vector3.new(-475.00, -6.99, 26.43),
     Vector3.new(-474.67, -6.94, 105.48),
 }
 local leftWaypoints = {
     Vector3.new(-472.49, -7.00, 90.62),
-    Vector3.new(-486.65, -4.54, 95.22),
+    Vector3.new(-488.93, -5.05, 99.14),
     Vector3.new(-475.08, -7.00, 93.29),
     Vector3.new(-472.48, -7.00, 20.01),
 }
