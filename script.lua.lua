@@ -2858,7 +2858,7 @@ elseif text == "Auto Walk" then
                                     progressBarBg.Visible = true
                                     local start = tick()
                                     while autoStealEnabled and findNearestSteal(root) == prompt do
-                                        local p = math.clamp((tick() - start) / 1.2, 0, 1)
+                                        local p = math.clamp((tick() - start) / 0.3, 0, 1)
                                         progressFill.Size = UDim2.new(p, 0, 1, 0)
                                         percentLabel.Text = math.floor(p*100).."%"
                                         if p >= 0.99 then
