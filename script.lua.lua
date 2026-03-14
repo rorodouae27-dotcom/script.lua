@@ -2244,8 +2244,7 @@ local function createAutoPlayGui()
         xBox.TextColor3 = Color3.fromRGB(255, 80, 80)
         xBox.Font = Enum.Font.GothamBold
         xBox.TextSize = 12
-        local savedR = savedSettings and savedSettings["rightWaypoints"]
-        xBox.Text = tostring(math.floor((savedR and savedR[i] and savedR[i][1] or rightWP5[i][1])*10)/10)
+        xBox.Text = tostring(math.floor(rightWP5[i][1]*10)/10)
         xBox.ClearTextOnFocus = false
         xBox.Parent = frame
         Instance.new("UICorner", xBox).CornerRadius = UDim.new(0,6)
@@ -2259,7 +2258,7 @@ local function createAutoPlayGui()
         zBox.TextColor3 = Color3.fromRGB(100, 220, 120)
         zBox.Font = Enum.Font.GothamBold
         zBox.TextSize = 12
-        zBox.Text = tostring(math.floor((savedR and savedR[i] and savedR[i][2] or rightWP5[i][2])*10)/10)
+        zBox.Text = tostring(math.floor(rightWP5[i][2]*10)/10)
         zBox.ClearTextOnFocus = false
         zBox.Parent = frame
         Instance.new("UICorner", zBox).CornerRadius = UDim.new(0,6)
