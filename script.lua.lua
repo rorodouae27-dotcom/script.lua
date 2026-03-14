@@ -2244,7 +2244,7 @@ local function createAutoPlayGui()
         xBox.TextColor3 = Color3.fromRGB(255, 80, 80)
         xBox.Font = Enum.Font.GothamBold
         xBox.TextSize = 12
-        xBox.Text = tostring(math.floor(rightWP5[i][1]*10)/10)
+        xBox.Text = tostring(math.floor((savedSettings["rightWaypoints"] and savedSettings["rightWaypoints"][i] and savedSettings["rightWaypoints"][i][1] or rightWP5[i][1])*10)/10)
         xBox.ClearTextOnFocus = false
         xBox.Parent = frame
         Instance.new("UICorner", xBox).CornerRadius = UDim.new(0,6)
@@ -2258,7 +2258,7 @@ local function createAutoPlayGui()
         zBox.TextColor3 = Color3.fromRGB(100, 220, 120)
         zBox.Font = Enum.Font.GothamBold
         zBox.TextSize = 12
-        zBox.Text = tostring(math.floor(rightWP5[i][2]*10)/10)
+        zBox.Text = tostring(math.floor((savedSettings["rightWaypoints"] and savedSettings["rightWaypoints"][i] and savedSettings["rightWaypoints"][i][2] or rightWP5[i][2])*10)/10)
         zBox.ClearTextOnFocus = false
         zBox.Parent = frame
         Instance.new("UICorner", zBox).CornerRadius = UDim.new(0,6)
@@ -2310,21 +2310,27 @@ local function createAutoPlayGui()
             -- Lire les waypoints depuis les boxes
             local src = side == "right" and rightY5 or leftY5
             local wp5 = side == "right" and rightWP5 or leftWP5
+            local boxes = side == "right" and rBoxes or lBoxes
             local pts = {}
+            local saveWP = {}
             for i = 1, NB do
-                local x = tonumber(rBoxes[i][1].Text) or wp5[i][1]
-                local z = tonumber(rBoxes[i][2].Text) or wp5[i][2]
+                local x = tonumber(boxes[i][1].Text) or wp5[i][1]
+                local z = tonumber(boxes[i][2].Text) or wp5[i][2]
                 table.insert(pts, Vector3.new(x, src[i], z))
+                table.insert(saveWP, {x, z})
             end
             if side == "right" then
                 rightWaypoints = pts
                 autoLoopRight = true
                 autoLoopLeft  = false
+                savedSettings["rightWaypoints"] = saveWP
             else
                 leftWaypoints = pts
                 autoLoopLeft  = true
                 autoLoopRight = false
+                savedSettings["leftWaypoints"] = saveWP
             end
+            saveSettings()
             startPatrol(side)
             playBtn.Text = "STOP"
             playBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
@@ -2686,6 +2692,22 @@ if savedSettings["grabRadius"]    then grabRadius    = savedSettings["grabRadius
 if savedSettings["LOCK_RADIUS"]   then LOCK_RADIUS   = savedSettings["LOCK_RADIUS"]   end
 if savedSettings["MEDUSA_RADIUS"] then MEDUSA_RADIUS = savedSettings["MEDUSA_RADIUS"] end
 if savedSettings["MELEE_RANGE"]   then MELEE_RANGE   = savedSettings["MELEE_RANGE"]   end
+
+-- Restaurer les waypoints sauvegardés
+if savedSettings["rightWaypoints"] then
+    for i, wp in ipairs(savedSettings["rightWaypoints"]) do
+        if rightWaypoints[i] then
+            rightWaypoints[i] = Vector3.new(wp[1], rightWaypoints[i].Y, wp[2])
+        end
+    end
+end
+if savedSettings["leftWaypoints"] then
+    for i, wp in ipairs(savedSettings["leftWaypoints"]) do
+        if leftWaypoints[i] then
+            leftWaypoints[i] = Vector3.new(wp[1], leftWaypoints[i].Y, wp[2])
+        end
+    end
+end
 
 
 local toggleRegistry = {}  -- { [name] = { fire=fn, setKey=fn } }
