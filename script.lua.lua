@@ -2170,7 +2170,7 @@ local function detectSide()
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return "right" end
     -- Z < 60 = spawn côté Right (Z~7), Z > 60 = côté Left (Z~114)
-    return root.Position.Z < 60 and "right" or "left"
+    return root.Position.Z < 60 and "left" or "right"
 end
 
 -- 5 points par côté (on ajoute un 5e point = même que le 4e par défaut)
